@@ -1,0 +1,20 @@
+{
+   "title": "JMSG_APP initialization file",
+   "description": ["Define runtime configurations."],
+   "config": {
+      
+      "APP_CFE_NAME":     "JMSG_APP",
+      "APP_MAIN_PERF_ID": 91,
+      
+      "JMSG_APP_CMD_TOPICID" : 0,
+      "JMSG_APP_STATUS_TLM_TOPICID": 0,
+      "JMSG_APP_TOPIC_TBL_TLM_TOPICID": 0,
+      "BC_SCH_2_SEC_TOPICID": 0,
+            
+      "CMD_PIPE_NAME":  "JMSG_APP_CMD_PIPE",
+      "CMD_PIPE_DEPTH": 2,
+      
+      "JMSG_TOPIC_TBL_FILE": "/cf/jmsg_topics.json"
+      
+   }
+}
