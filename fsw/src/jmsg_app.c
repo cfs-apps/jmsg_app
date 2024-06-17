@@ -29,6 +29,7 @@
 #include "jmsg_app.h"
 #include "jmsg_app_eds_cc.h"
 #include "jmsg_topic_tbl.h"
+#include "jmsg_lib_cmd.h"
 
 /***********************/
 /** Macro Definitions **/

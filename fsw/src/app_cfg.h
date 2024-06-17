@@ -41,11 +41,11 @@
 /*
 ** Versions:
 **
-** 0.9 - Prototype
+** 1.0 - Initial release tested with jmsg_lib version 1.0 
 */
 
-#define  JMSG_APP_MAJOR_VER      0
-#define  JMSG_APP_MINOR_VER      9
+#define  JMSG_APP_MAJOR_VER      1
+#define  JMSG_APP_MINOR_VER      0
 
 
 /******************************************************************************
@@ -103,7 +103,7 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** exceeded so it is the developer's responsibility to verify the ranges. 
 */
 
-#define JMSG_APP_BASE_EID  (APP_C_FW_APP_BASE_EID + 0)
-
+#define JMSG_APP_BASE_EID      (APP_C_FW_APP_BASE_EID +  0)
+#define JMSG_LIB_CMD_BASE_EID  (APP_C_FW_APP_BASE_EID + 20)
 
 #endif /* _app_cfg_ */
