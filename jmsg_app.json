@@ -3,7 +3,7 @@
    "app": {
    
    "title": "JMSG_APP",
-   "version": "0.9.0",
+   "version": "1.0.0",
    "supplier": "Open STEMware",
    "copyright": "bitValence",
    "url": "https://github.com/cfs-apps/jmsg_app",
@@ -17,7 +17,7 @@
 
    "cfs": {
       "cfe-type": "CFE_APP",
-      "obj-file": "jmsg_lib",
+      "obj-file": "jmsg_app",
       "entry-symbol": "JMSG_AppMain",
       "name": "JMSG_APP",
       "priority": 70,
