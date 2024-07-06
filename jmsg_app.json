@@ -12,7 +12,8 @@
       "Provide a command and telemetry interface to the JMSG_LIB. This library",
       "defines JSON message topic plugins that are used to translate between",
       "JSON text messages and SB binary messages. Network apps like JMSG_UDP",
-      "route the JSON messages"
+      "route the JSON messages",
+      "JMSG_APP's priority should be less than JMSG_MQTT and JMSG_UDP"
    ],
 
    "cfs": {
@@ -20,7 +21,7 @@
       "obj-file": "jmsg_app",
       "entry-symbol": "JMSG_AppMain",
       "name": "JMSG_APP",
-      "priority": 70,
+      "priority": 100,
       "stack": 32768,
       "load_addr": 0,
       "exception-action": 0,

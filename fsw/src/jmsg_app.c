@@ -29,16 +29,17 @@
 #include "jmsg_app.h"
 #include "jmsg_app_eds_cc.h"
 #include "jmsg_topic_tbl.h"
-#include "jmsg_lib_cmd.h"
 
 /***********************/
 /** Macro Definitions **/
 /***********************/
 
 /* Convenience macros */
-#define  INITBL_OBJ      (&(JMsgApp.IniTbl))
-#define  CMDMGR_OBJ      (&(JMsgApp.CmdMgr))
-#define  TBLMGR_OBJ      (&(JMsgApp.TblMgr))  
+#define  INITBL_OBJ    (&(JMsgApp.IniTbl))
+#define  CMDMGR_OBJ    (&(JMsgApp.CmdMgr))
+#define  TBLMGR_OBJ    (&(JMsgApp.TblMgr))  
+#define  LIBMGR_OBJ    (&(JMsgApp.JMsgLibMgr))
+
 
 /*******************************/
 /** Local Function Prototypes **/
@@ -139,7 +140,8 @@ bool JMSG_APP_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    CFE_EVS_ResetAllFilters();
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
-	  
+	JMSG_LIB_MGR_ResetStatus();
+        
    return true;
 
 } /* End JMSG_APP_ResetAppCmd() */
@@ -161,20 +163,23 @@ static int32 InitApp(void)
 
    if (INITBL_Constructor(INITBL_OBJ, JMSG_APP_INI_FILENAME, &IniCfgEnum))
    {
-   
+
       JMsgApp.PerfId = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);
       CFE_ES_PerfLogEntry(JMsgApp.PerfId);
 
       /*
-      ** JMSG_LIB owns the JMSG_TOPIC_TBL object
+      ** JMSG_LIB owns the JMSG_TOPIC_TBL object so JMSG_LIB must be loaded prior to JMSG_APP
+      ** The table must be loaded prior to calling JMSG_LIB_MGR_Constructor()
       */
       TBLMGR_Constructor(TBLMGR_OBJ, INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CFE_NAME));
       TBLMGR_RegisterTblWithDef(TBLMGR_OBJ, JMSG_TOPIC_TBL_NAME, 
                                 JMSG_TOPIC_TBL_LoadCmd, JMSG_TOPIC_TBL_DumpCmd,  
                                 INITBL_GetStrConfig(INITBL_OBJ, CFG_JMSG_TOPIC_TBL_FILE));
+
+      JMSG_LIB_MGR_Constructor(LIBMGR_OBJ, INITBL_OBJ);
                              
-      JMsgApp.CmdMid        = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_CMD_TOPICID));
-      JMsgApp.SendStatusMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_STATUS_TLM_TOPICID));
+      JMsgApp.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_CMD_TOPICID));
+      JMsgApp.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_EXECUTE_TLM_TOPICID));
          
       /*
       ** Initialize app level interfaces
@@ -182,20 +187,21 @@ static int32 InitApp(void)
  
       CFE_SB_CreatePipe(&JMsgApp.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_CMD_PIPE_NAME));  
       CFE_SB_Subscribe(JMsgApp.CmdMid, JMsgApp.CmdPipe);
-      CFE_SB_Subscribe(JMsgApp.SendStatusMid, JMsgApp.CmdPipe);
+      CFE_SB_Subscribe(JMsgApp.ExecuteMid, JMsgApp.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_NOOP_CC,  NULL, JMSG_APP_NoOpCmd,     0);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_RESET_CC, NULL, JMSG_APP_ResetAppCmd, 0);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, sizeof(JMSG_LIB_LoadTbl_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, sizeof(JMSG_LIB_DumpTbl_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, sizeof(JMSG_APP_LoadTbl_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, sizeof(JMSG_APP_DumpTbl_CmdPayload_t));
  
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_CONFIG_TOPIC_PLUGIN_CC,   NULL, JMSG_TOPIC_TBL_ConfigTopicPluginCmd,   sizeof(JMSG_LIB_ConfigTopicPlugin_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_RUN_TOPIC_PLUGIN_TEST_CC, NULL, JMSG_TOPIC_TBL_RunTopicPluginTestCmd,  sizeof(JMSG_LIB_RunTopicPluginTest_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_PLUGIN_TLM_CC, NULL, JMSG_TOPIC_TBL_SendTopicTPluginTlmCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_CONFIG_TOPIC_PLUGIN_CC,      NULL, JMSG_LIB_MGR_ConfigTopicPluginCmd,     sizeof(JMSG_APP_ConfigTopicPlugin_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_TBL_TLM_CC,       NULL, JMSG_TOPIC_TBL_SendTlmCmd,             0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_SUBSCRIBE_TLM_CC, NULL, JMSG_LIB_MGR_SendTopicSubscribeTlmCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_START_TOPIC_TEST_CC,         NULL, JMSG_LIB_MGR_StartTopicTestCmd,        sizeof(JMSG_APP_StartTopicTest_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_STOP_TOPIC_TEST_CC,          NULL, JMSG_LIB_MGR_StopTopicTestCmd,         0);
 
-      CFE_MSG_Init(CFE_MSG_PTR(JMsgApp.StatusTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_STATUS_TLM_TOPICID)), sizeof(JMSG_APP_StatusTlm_t));
       CFE_MSG_Init(CFE_MSG_PTR(JMsgApp.StatusTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_STATUS_TLM_TOPICID)), sizeof(JMSG_APP_StatusTlm_t));
 
       /*
@@ -243,8 +249,9 @@ static int32 ProcessCommands(void)
          {
             CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
          } 
-         else if (CFE_SB_MsgId_Equal(MsgId, JMsgApp.SendStatusMid))
+         else if (CFE_SB_MsgId_Equal(MsgId, JMsgApp.ExecuteMid))
          {   
+            JMSG_LIB_MGR_RunTopicTest();
             SendStatusPkt();
          }
          else

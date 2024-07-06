@@ -29,6 +29,7 @@
 */
 
 #include "app_cfg.h"
+#include "jmsg_lib_mgr.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -88,8 +89,10 @@ typedef struct
    uint32 PerfId;
    
    CFE_SB_MsgId_t  CmdMid;
-   CFE_SB_MsgId_t  SendStatusMid;
+   CFE_SB_MsgId_t  ExecuteMid;
      
+   JMSG_LIB_MGR_Class_t  JMsgLibMgr;
+   
 } JMSG_APP_Class_t;
 
 
