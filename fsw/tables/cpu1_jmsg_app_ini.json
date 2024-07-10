@@ -1,10 +1,11 @@
 {
    "title": "JMSG_APP initialization file",
    "description": ["Define runtime configurations.",
-                   "TOPIC_SUBSCRIBE_DELAY: Millisecond delay before sending SubscribeTopicTlm messages.",
-                   "                       This suspends the task so CMD_PIPE_DEPTH must be able to hold",
-                   "                       BC_SCH_2_SEC_TOPICID requests during the delay. Kept design",
-                   "                       since no consequence of app task suspension"],
+                   "TOPIC_SUBSCRIBE_STARTUP_DELAY: Millisecond delay before sending SubscribeTopicTlm messages.",
+                   "TOPIC_SUBSCRIBE_TLM_DELAY:     Millisecond delay between sending SubscribeTopicTlm messages.",
+                   "    This design suspends the task so CMD_PIPE_DEPTH must be able to hold BC_SCH_2_SEC_TOPICID",
+                   "    requests while the app execution is suspended. The was kept simple since there aren't any",
+                   "    negative consequence of suspending the app."],
    "config": {
       
       "APP_CFE_NAME":     "JMSG_APP",
@@ -19,7 +20,8 @@
       "CMD_PIPE_NAME":  "JMSG_APP_CMD_PIPE",
       "CMD_PIPE_DEPTH": 5,
       
-      "TOPIC_SUBSCRIBE_DELAY": 500,
+      "TOPIC_SUBSCRIBE_STARTUP_DELAY": 1000,
+      "TOPIC_SUBSCRIBE_TLM_DELAY": 500,
       "JMSG_TOPIC_TBL_FILE": "/cf/jmsg_topics.json"
       
    }

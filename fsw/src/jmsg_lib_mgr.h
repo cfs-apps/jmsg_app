@@ -41,9 +41,10 @@
 ** Event Message IDs
 */
 
-#define JMSG_LIB_MGR_CONFIG_PLUGIN_EID    (JMSG_LIB_MGR_BASE_EID + 0)
-#define JMSG_LIB_MGR_START_TOPIC_TEST_EID (JMSG_LIB_MGR_BASE_EID + 1)
-#define JMSG_LIB_MGR_STOP_TOPIC_TEST_EID  (JMSG_LIB_MGR_BASE_EID + 2)
+#define JMSG_LIB_MGR_CONFIG_PLUGIN_EID      (JMSG_LIB_MGR_BASE_EID + 0)
+#define JMSG_LIB_MGR_SEND_SUBSCRIBE_TLM_EID (JMSG_LIB_MGR_BASE_EID + 1)
+#define JMSG_LIB_MGR_START_TOPIC_TEST_EID   (JMSG_LIB_MGR_BASE_EID + 2)
+#define JMSG_LIB_MGR_STOP_TOPIC_TEST_EID    (JMSG_LIB_MGR_BASE_EID + 3)
 
 /**********************/
 /** Type Definitions **/
@@ -52,7 +53,7 @@
 
 typedef struct
 {
-   
+   uint32                        TopicSubscribeTlmDelay;
    CFE_SB_MsgId_t                TopicSubscribeTlmMid;
    JMSG_LIB_TopicSubscribeTlm_t  TopicSubscribeTlm;
      
@@ -103,6 +104,13 @@ void JMSG_LIB_MGR_ResetStatus(void);
 **
 */
 void JMSG_LIB_MGR_RunTopicTest(void);
+
+
+/******************************************************************************
+** Function: JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd
+**
+*/
+bool JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************

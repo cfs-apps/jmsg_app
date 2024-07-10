@@ -35,7 +35,8 @@
 /** Local Function Prototypes **/
 /*******************************/
 
-static void SendTopicSubscribeTlm(void);
+static void SendAllTopicSubscribeTlm(void);
+static void SendTopicSubscribeTlm(JMSG_PLATFORM_TopicPlugin_Enum_t TopicPlugin);
 
 
 /**********************/
@@ -55,6 +56,8 @@ void JMSG_LIB_MGR_Constructor(JMSG_LIB_MGR_Class_t *JMsgLibMgrPtr, const INITBL_
    JMsgLibMgr = JMsgLibMgrPtr;
    
    memset((void*)JMsgLibMgr, 0, sizeof(JMSG_LIB_MGR_Class_t));
+
+   JMsgLibMgr->TopicSubscribeTlmDelay = INITBL_GetIntConfig(IniTbl, CFG_TOPIC_SUBSCRIBE_TLM_DELAY);
    
    JMsgLibMgr->TopicSubscribeTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(IniTbl, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_TLM_TOPICID));
    CFE_MSG_Init(CFE_MSG_PTR(JMsgLibMgr->TopicSubscribeTlm.TelemetryHeader), JMsgLibMgr->TopicSubscribeTlmMid, sizeof(JMSG_LIB_TopicSubscribeTlm_t));
@@ -63,8 +66,8 @@ void JMSG_LIB_MGR_Constructor(JMSG_LIB_MGR_Class_t *JMsgLibMgrPtr, const INITBL_
    USR_TPLUG_Constructor();
 
    // Allow time for JMSG protocol apps to initialize
-   OS_TaskDelay(INITBL_GetIntConfig(IniTbl, CFG_TOPIC_SUBSCRIBE_DELAY));
-   SendTopicSubscribeTlm();
+   OS_TaskDelay(INITBL_GetIntConfig(IniTbl, CFG_TOPIC_SUBSCRIBE_STARTUP_DELAY));
+   SendAllTopicSubscribeTlm();
 
 } /* JMSG_LIB_MGR_Constructor() */
 
@@ -160,6 +163,46 @@ void JMSG_LIB_MGR_RunTopicTest(void)
 
 
 /******************************************************************************
+** Function: JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd
+**
+*/
+bool JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+{
+
+   SendAllTopicSubscribeTlm();
+
+   return true;
+   
+} /* End JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd() */
+
+
+/******************************************************************************
+** Function: JMSG_LIB_MGR_SendTopicSubscribeTlmCmd
+**
+*/
+bool JMSG_LIB_MGR_SendTopicSubscribeTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+{
+   const JMSG_APP_SendTopicSubscribeTlm_CmdPayload_t *SendTopicPlugin = CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_APP_SendTopicSubscribeTlm_t);
+
+   bool RetStatus = false;
+
+   if (SendTopicPlugin->Id >= JMSG_PLATFORM_TopicPlugin_Enum_t_MIN && SendTopicPlugin->Id <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX)
+   {
+      SendTopicSubscribeTlm(SendTopicPlugin->Id);
+      RetStatus = true;
+   }
+   else
+   {
+      CFE_EVS_SendEvent(JMSG_LIB_MGR_SEND_SUBSCRIBE_TLM_EID, CFE_EVS_EventType_ERROR, 
+                        "Send topic subscribe telemetry rejected, invalid topic plugin ID %d", SendTopicPlugin->Id);
+   }
+   return RetStatus;
+      
+} /* End JMSG_LIB_MGR_SendTopicSubscribeTlmCmd() */
+
+
+
+/******************************************************************************
 ** Function: JMSG_LIB_MGR_StartTopicTestCmd
 **
 */
@@ -211,39 +254,39 @@ bool JMSG_LIB_MGR_StopTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *Ms
 
 
 /******************************************************************************
-** Function: JMSG_LIB_MGR_SendTopicSubscribeTlmCmd
+** Function: SendAllTopicSubscribeTlm
 **
 */
-bool JMSG_LIB_MGR_SendTopicSubscribeTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+static void SendAllTopicSubscribeTlm(void)
 {
-   
-   SendTopicSubscribeTlm();
-   return true;
+   for (JMSG_PLATFORM_TopicPlugin_Enum_t i=JMSG_PLATFORM_TopicPlugin_Enum_t_MIN; i <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX; i++)
+   {
+      SendTopicSubscribeTlm(i);
       
-} /* End JMSG_LIB_MGR_SendTopicSubscribeTlmCmd() */
+   } /* End topic loop */
+   
+} /* SendAllTopicSubscribeTlm() */
 
-
+   
 /******************************************************************************
 ** Function: SendTopicSubscribeTlm
 **
 ** Notes:
 **   1. Sends a telemetry message that is processed by JMSG protocol apps so
 **      they can subscribe to topic plugins that use their protocol
+**   2. No check are performed to determine whether a topic A SB duplicate
+**      subscription event message will be sent if two subscription requests
+**      are made without an unsubscribe requests between them.
 */
-static void SendTopicSubscribeTlm(void)
+static void SendTopicSubscribeTlm(JMSG_PLATFORM_TopicPlugin_Enum_t TopicPlugin)
 {
 
-   for (enum JMSG_PLATFORM_TopicPlugin i=JMSG_PLATFORM_TopicPlugin_Enum_t_MIN; i <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX; i++)
-   {
-      
-      JMsgLibMgr->TopicSubscribeTlm.Payload.Id       = i;
-      JMsgLibMgr->TopicSubscribeTlm.Payload.Protocol = JMSG_TOPIC_TBL_GetTopicProtocol(i);
+   JMsgLibMgr->TopicSubscribeTlm.Payload.Id       = TopicPlugin;
+   JMsgLibMgr->TopicSubscribeTlm.Payload.Protocol = JMSG_TOPIC_TBL_GetTopicProtocol(TopicPlugin);
 
-      CFE_SB_TimeStampMsg(CFE_MSG_PTR(JMsgLibMgr->TopicSubscribeTlm.TelemetryHeader));
-      CFE_SB_TransmitMsg(CFE_MSG_PTR(JMsgLibMgr->TopicSubscribeTlm.TelemetryHeader), true);
-      OS_TaskDelay(1000);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(JMsgLibMgr->TopicSubscribeTlm.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(JMsgLibMgr->TopicSubscribeTlm.TelemetryHeader), true);
+   OS_TaskDelay(JMsgLibMgr->TopicSubscribeTlmDelay);
       
-   } /* End topic loop */
-   
       
 } /* End SendTopicSubscribeTlm() */

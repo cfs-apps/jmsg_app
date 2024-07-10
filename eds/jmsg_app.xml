@@ -73,6 +73,12 @@
        </EntryList>
       </ContainerDataType>
 
+      <ContainerDataType name="SendTopicSubscribeTlm_CmdPayload" shortDescription="Send one topic subscribe tlm message">
+        <EntryList>
+          <Entry name="Id"  type="JMSG_PLATFORM/TopicPlugin" shortDescription="Plugin ID of test to run" />
+       </EntryList>
+      </ContainerDataType>
+
 
       <!--*****************************************-->
       <!--**** DataTypeSet: Telemetry Payloads ****-->
@@ -136,21 +142,30 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="SendTopicSubscribeTlm" baseType="CommandBase" shortDescription="Send 'subscribe to topic' telemetry that is processed by JMSG protocol apps">
+      <ContainerDataType name="SendAllTopicSubscribeTlm" baseType="CommandBase" shortDescription="Send 'subscribe to topic' telemetry for all of the topics">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 1" />
         </ConstraintSet>
       </ContainerDataType>
       
-      <ContainerDataType name="SendTopicTblTlm" baseType="CommandBase" shortDescription="Send a telemetry message with topic table parameters">
+      <ContainerDataType name="SendTopicSubscribeTlm" baseType="CommandBase" shortDescription="Send 'subscribe to topic' telemetry for one topic">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="SendTopicSubscribeTlm_CmdPayload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+      
+      <ContainerDataType name="SendTopicTblTlm" baseType="CommandBase" shortDescription="Send a telemetry message with topic table parameters">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 3" />
         </ConstraintSet>
       </ContainerDataType>
 
       <ContainerDataType name="StartTopicTest" baseType="CommandBase" shortDescription="Start built-in test">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 3" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 4" />
         </ConstraintSet>
         <EntryList>
           <Entry type="StartTopicTest_CmdPayload" name="Payload" />
@@ -159,7 +174,7 @@
 
       <ContainerDataType name="StopTopicTest" baseType="CommandBase" shortDescription="Start built-in test">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 4" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 5" />
         </ConstraintSet>
       </ContainerDataType>
 
