@@ -197,8 +197,8 @@ static int32 InitApp(void)
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, sizeof(JMSG_APP_DumpTbl_CmdPayload_t));
 
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_CONFIG_TOPIC_PLUGIN_CC,      NULL, JMSG_LIB_MGR_ConfigTopicPluginCmd,            sizeof(JMSG_APP_ConfigTopicPlugin_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_ALL_TOPIC_SUBSCRIBE_TLM_CC, NULL, JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd, 0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_SUBSCRIBE_TLM_CC, NULL, JMSG_LIB_MGR_SendTopicSubscribeTlmCmd,        sizeof( JMSG_APP_SendTopicSubscribeTlm_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_ALL_TOPIC_SUBSCRIBE_REQ_CC, NULL, JMSG_LIB_MGR_SendAllTopicSubscribeReqCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_SUBSCRIBE_REQ_CC, NULL, JMSG_LIB_MGR_SendTopicSubscribeReqCmd,        sizeof( JMSG_APP_SendTopicSubscribeReq_CmdPayload_t));
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_TBL_TLM_CC,       NULL, JMSG_TOPIC_TBL_SendTlmCmd,                    0);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_START_TOPIC_TEST_CC,         NULL, JMSG_LIB_MGR_StartTopicTestCmd,               sizeof(JMSG_APP_StartTopicTest_CmdPayload_t));
       CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_STOP_TOPIC_TEST_CC,          NULL, JMSG_LIB_MGR_StopTopicTestCmd,                0);

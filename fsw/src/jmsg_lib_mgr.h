@@ -17,7 +17,7 @@
 **
 ** Notes:
 **   1. The JMSG lib and app designs are similar to the cFE service
-**      designs. The app provides the command and telemtry ground
+**      designs. The app provides the command and telemetry ground
 **      interface to the library. A major difference is that JMSG_LIB 
 **      contains a table that configures the topics being managed.
 **   2. TODO: Describe coupling and dependencies.
@@ -41,10 +41,10 @@
 ** Event Message IDs
 */
 
-#define JMSG_LIB_MGR_CONFIG_PLUGIN_EID      (JMSG_LIB_MGR_BASE_EID + 0)
-#define JMSG_LIB_MGR_SEND_SUBSCRIBE_TLM_EID (JMSG_LIB_MGR_BASE_EID + 1)
-#define JMSG_LIB_MGR_START_TOPIC_TEST_EID   (JMSG_LIB_MGR_BASE_EID + 2)
-#define JMSG_LIB_MGR_STOP_TOPIC_TEST_EID    (JMSG_LIB_MGR_BASE_EID + 3)
+#define JMSG_LIB_MGR_CONFIG_PLUGIN_EID          (JMSG_LIB_MGR_BASE_EID + 0)
+#define JMSG_LIB_MGR_SEND_SUBSCRIBE_REQ_TLM_EID (JMSG_LIB_MGR_BASE_EID + 1)
+#define JMSG_LIB_MGR_START_TOPIC_TEST_EID       (JMSG_LIB_MGR_BASE_EID + 2)
+#define JMSG_LIB_MGR_STOP_TOPIC_TEST_EID        (JMSG_LIB_MGR_BASE_EID + 3)
 
 /**********************/
 /** Type Definitions **/
@@ -53,9 +53,9 @@
 
 typedef struct
 {
-   uint32                        TopicSubscribeTlmDelay;
-   CFE_SB_MsgId_t                TopicSubscribeTlmMid;
-   JMSG_LIB_TopicSubscribeTlm_t  TopicSubscribeTlm;
+   uint32                           TopicSubscribeReqDelay;
+   CFE_SB_MsgId_t                   TopicSubscribeReqTlmMid;
+   JMSG_LIB_TopicSubscribeReqTlm_t  TopicSubscribeReqTlm;
      
    bool    TestActive;
    uint32  TestExeCnt;
@@ -107,17 +107,17 @@ void JMSG_LIB_MGR_RunTopicTest(void);
 
 
 /******************************************************************************
-** Function: JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd
+** Function: JMSG_LIB_MGR_SendAllTopicSubscribeReqCmd
 **
 */
-bool JMSG_LIB_MGR_SendAllTopicSubscribeTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool JMSG_LIB_MGR_SendAllTopicSubscribeReqCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: JMSG_LIB_MGR_SendTopicSubscribeTlmCmd
+** Function: JMSG_LIB_MGR_SendTopicSubscribeReqCmd
 **
 */
-bool JMSG_LIB_MGR_SendTopicSubscribeTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool JMSG_LIB_MGR_SendTopicSubscribeReqCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************

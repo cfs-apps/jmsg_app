@@ -73,7 +73,7 @@
        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="SendTopicSubscribeTlm_CmdPayload" shortDescription="Send one topic subscribe tlm message">
+      <ContainerDataType name="SendTopicSubscribeReq_CmdPayload" shortDescription="Send one topic subscribe tlm message">
         <EntryList>
           <Entry name="Id"  type="JMSG_PLATFORM/TopicPlugin" shortDescription="Plugin ID of test to run" />
        </EntryList>
@@ -142,18 +142,18 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="SendAllTopicSubscribeTlm" baseType="CommandBase" shortDescription="Send 'subscribe to topic' telemetry for all of the topics">
+      <ContainerDataType name="SendAllTopicSubscribeReq" baseType="CommandBase" shortDescription="Send 'subscribe to topic' command for all of the topics">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 1" />
         </ConstraintSet>
       </ContainerDataType>
       
-      <ContainerDataType name="SendTopicSubscribeTlm" baseType="CommandBase" shortDescription="Send 'subscribe to topic' telemetry for one topic">
+      <ContainerDataType name="SendTopicSubscribeReq" baseType="CommandBase" shortDescription="Send 'subscribe to topic' command for one topic">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${APP_C_FW/APP_BASE_CC} + 2" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="SendTopicSubscribeTlm_CmdPayload" name="Payload" />
+          <Entry type="SendTopicSubscribeReq_CmdPayload" name="Payload" />
         </EntryList>
       </ContainerDataType>
       
