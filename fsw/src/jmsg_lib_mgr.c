@@ -57,6 +57,7 @@ void JMSG_LIB_MGR_Constructor(JMSG_LIB_MGR_Class_t *JMsgLibMgrPtr, const INITBL_
    
    memset((void*)JMsgLibMgr, 0, sizeof(JMSG_LIB_MGR_Class_t));
 
+   JMsgLibMgr->TestId = JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF;
    JMsgLibMgr->TopicSubscribeReqDelay = INITBL_GetIntConfig(IniTbl, CFG_TOPIC_SUBSCRIBE_REQ_DELAY);
    
    JMsgLibMgr->TopicSubscribeReqTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(IniTbl, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID));
@@ -82,7 +83,9 @@ void JMSG_LIB_MGR_Constructor(JMSG_LIB_MGR_Class_t *JMsgLibMgrPtr, const INITBL_
 **   2. DataObjPtr is not used.
 **   3. The functions called send error events so this function only needs to
 **      report a successful command. 
-**   4. TODO: No protection against enabling a topic plugin that was never constructed. Is this a problem with stubs?
+**   4. This function doesn't check whether a plugin has been constructed. Stub
+**      functions are used for unused topics so there aren't runtime fault risk
+**      if an unused topic is enabled and its test is executed.
 **
 */
 bool JMSG_LIB_MGR_ConfigTopicPluginCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
@@ -92,42 +95,45 @@ bool JMSG_LIB_MGR_ConfigTopicPluginCmd(void *DataObjPtr, const CFE_MSG_Message_t
    bool RetStatus = false;
    JMSG_TOPIC_TBL_SubscriptionOptEnum_t TopicSubscription;
    
-   if (ConfigTopicPlugin->Action == APP_C_FW_ConfigEnaAction_ENABLE)
+   if (JMSG_TOPIC_TBL_ValidTopicPluginId(ConfigTopicPlugin->Id, "Configure plugin topic command rejected"))
    {
-      if (JMSG_TOPIC_TBL_EnablePlugin(ConfigTopicPlugin->Id))
+      if (ConfigTopicPlugin->Action == APP_C_FW_ConfigEnaAction_ENABLE)
       {
-         TopicSubscription = JMSG_TOPIC_TBL_SubscribeToTopicMsg(ConfigTopicPlugin->Id, JMSG_TOPIC_TBL_SUB_TO_ROLE);
-         if ((TopicSubscription == JMSG_TOPIC_TBL_SUB_JMSG) || (TopicSubscription == JMSG_TOPIC_TBL_SUB_SB))
+         if (JMSG_TOPIC_TBL_EnablePlugin(ConfigTopicPlugin->Id))
          {
-            RetStatus = true;
-            CFE_EVS_SendEvent(JMSG_LIB_MGR_CONFIG_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Sucessfully enabled plugin topic %d",ConfigTopicPlugin->Id);
-         }
-         else
-         {
-            JMSG_TOPIC_TBL_DisablePlugin(ConfigTopicPlugin->Id);            
+            TopicSubscription = JMSG_TOPIC_TBL_SubscribeToTopicMsg(ConfigTopicPlugin->Id, JMSG_TOPIC_TBL_SUB_TO_ROLE);
+            if ((TopicSubscription == JMSG_TOPIC_TBL_SUB_JMSG) || (TopicSubscription == JMSG_TOPIC_TBL_SUB_SB))
+            {
+               RetStatus = true;
+               CFE_EVS_SendEvent(JMSG_LIB_MGR_CONFIG_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
+                                 "Sucessfully enabled plugin topic %d",ConfigTopicPlugin->Id);
+            }
+            else
+            {
+               JMSG_TOPIC_TBL_DisablePlugin(ConfigTopicPlugin->Id);            
+            }
          }
       }
-   }
-   else if (ConfigTopicPlugin->Action == APP_C_FW_ConfigEnaAction_DISABLE)
-   {
-      if (JMSG_TOPIC_TBL_DisablePlugin(ConfigTopicPlugin->Id))
+      else if (ConfigTopicPlugin->Action == APP_C_FW_ConfigEnaAction_DISABLE)
       {
-         if (JMSG_TOPIC_TBL_UnsubscribeFromTopicMsg(ConfigTopicPlugin->Id))
+         if (JMSG_TOPIC_TBL_DisablePlugin(ConfigTopicPlugin->Id))
          {
-            RetStatus = true;
-            CFE_EVS_SendEvent(JMSG_LIB_MGR_CONFIG_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Sucessfully disabled plugin topic %d",ConfigTopicPlugin->Id);
+            if (JMSG_TOPIC_TBL_UnsubscribeFromTopicMsg(ConfigTopicPlugin->Id))
+            {
+               RetStatus = true;
+               CFE_EVS_SendEvent(JMSG_LIB_MGR_CONFIG_PLUGIN_EID, CFE_EVS_EventType_INFORMATION, 
+                                 "Sucessfully disabled plugin topic %d",ConfigTopicPlugin->Id);
+            }
          }
       }
-   }
-   else
-   {
-      CFE_EVS_SendEvent(JMSG_LIB_MGR_CONFIG_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
-                        "Configure plugin topic %d command rejected. Invalid action %d",
-                        ConfigTopicPlugin->Id, ConfigTopicPlugin->Action);
-   }
-  
+      else
+      {
+         CFE_EVS_SendEvent(JMSG_LIB_MGR_CONFIG_PLUGIN_EID, CFE_EVS_EventType_ERROR, 
+                           "Configure plugin topic %d command rejected. Invalid action %d",
+                           ConfigTopicPlugin->Id, ConfigTopicPlugin->Action);
+      }
+   } /* End if valid ID */
+   
    return RetStatus;
     
 } /* End JMSG_LIB_MGR_ConfigTopicPluginCmd() */
@@ -201,9 +207,13 @@ bool JMSG_LIB_MGR_SendTopicSubscribeReqCmd(void *ObjDataPtr, const CFE_MSG_Messa
 } /* End JMSG_LIB_MGR_SendTopicSubscribeReqCmd() */
 
 
-
 /******************************************************************************
 ** Function: JMSG_LIB_MGR_StartTopicTestCmd
+**
+** Notes:
+**   1. The need for a test parameter evolved from internal test needs. The 
+**      ground command interface does not currently let the user set the
+**      test parameter.
 **
 */
 bool JMSG_LIB_MGR_StartTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
@@ -213,21 +223,30 @@ bool JMSG_LIB_MGR_StartTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *M
                                           
    if (StartTest->Id >= JMSG_PLATFORM_TopicPlugin_Enum_t_MIN && StartTest->Id <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX)
    {
-      JMsgLibMgr->TestActive = true;
-      JMsgLibMgr->TestExeCnt = 0;
-      JMsgLibMgr->TestId     = StartTest->Id;
-      JMsgLibMgr->TestParam  = 0;   //TODO: Decide whether need a test parameter   
+      const JMSG_TOPIC_TBL_Topic_t *Topic = JMSG_TOPIC_TBL_GetTopic(StartTest->Id);
+      if (Topic != NULL)
+      {
+         JMsgLibMgr->TestActive = true;
+         JMsgLibMgr->TestExeCnt = 0;
+         JMsgLibMgr->TestId     = StartTest->Id;
+         JMsgLibMgr->TestParam  = 0;      
 
-      CFE_EVS_SendEvent(JMSG_LIB_MGR_START_TOPIC_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                        "Started test %d", JMsgLibMgr->TestId);
-      
-      JMSG_TOPIC_TBL_RunTopicPluginTest(JMsgLibMgr->TestId, true, JMsgLibMgr->TestParam);
-      RetStatus = true;
+         CFE_EVS_SendEvent(JMSG_LIB_MGR_START_TOPIC_TEST_EID, CFE_EVS_EventType_INFORMATION, 
+                           "Started topic %d test", JMsgLibMgr->TestId);
+
+         JMSG_TOPIC_TBL_RunTopicPluginTest(JMsgLibMgr->TestId, true, JMsgLibMgr->TestParam);
+         RetStatus = true;
+      }
+      else
+      {
+         CFE_EVS_SendEvent(JMSG_LIB_MGR_START_TOPIC_TEST_EID, CFE_EVS_EventType_ERROR,
+                           "Start topic %d test command rejected, topic is not installed", StartTest->Id);
+      }
    }
    else
    {
       CFE_EVS_SendEvent(JMSG_LIB_MGR_START_TOPIC_TEST_EID, CFE_EVS_EventType_ERROR, 
-                        "Start test rejected, invalid topic plugin ID %d", JMsgLibMgr->TestId);
+                        "Start topic test rejected, invalid topic plugin ID %d", JMsgLibMgr->TestId);
    }
    
    return RetStatus;
@@ -238,17 +257,35 @@ bool JMSG_LIB_MGR_StartTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *M
 /******************************************************************************
 ** Function: JMSG_LIB_MGR_StopTopicTestCmd
 **
+** Notes:
+**   1. A warning event is issued if a stop test command is received when
+**      a test isn't active. This isn't considered an error because stop
+**      commands may be issued blindly (no telemetry monitored) to ensure
+**      the system is in a known state. 
+**
 */
 bool JMSG_LIB_MGR_StopTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
+   bool RetStatus = true;
+   
+
+   if (JMsgLibMgr->TestActive)
+   {
+      CFE_EVS_SendEvent(JMSG_LIB_MGR_STOP_TOPIC_TEST_EID, CFE_EVS_EventType_INFORMATION, 
+                        "Stopped topic %d test", JMsgLibMgr->TestId);
+   }
+   else
+   {
+      CFE_EVS_SendEvent(JMSG_LIB_MGR_STOP_TOPIC_TEST_EID, CFE_EVS_EventType_INFORMATION, 
+                        "Received a stop topic test command when no test is active");   
+   }
+
+   JMsgLibMgr->TestId     = JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF;
    JMsgLibMgr->TestExeCnt = 0;
    JMsgLibMgr->TestActive = false;
-
-   CFE_EVS_SendEvent(JMSG_LIB_MGR_STOP_TOPIC_TEST_EID, CFE_EVS_EventType_INFORMATION, 
-                     "Stopped test %d", JMsgLibMgr->TestId);
    
-   return true;
+   return RetStatus;
    
 } /* End JMSG_LIB_MGR_StopTopicTestCmd() */
 
@@ -274,9 +311,10 @@ static void SendAllTopicSubscribeReq(void)
 ** Notes:
 **   1. Sends a telemetry message that is processed by JMSG protocol apps so
 **      they can subscribe to topic plugins that use their protocol
-**   2. TOOD: No checks are performed to determine whether a topic A SB duplicate
-**      subscription event message will be sent if two subscription requests
-**      are made without an unsubscribe requests between them.
+**   2. No checks are performed to determine whether a topic has already been
+**      subscribed to. Therefore a SB "duplicate subscription" event message
+**      will be sent if two subscription requests are made without an
+**      unsubscribe requests between them.
 */
 static void SendTopicSubscribeReq(JMSG_PLATFORM_TopicPlugin_Enum_t TopicPlugin)
 {

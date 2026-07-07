@@ -306,6 +306,10 @@ void SendStatusPkt(void)
    Payload->LastTblAction       = LastTbl->LastAction;
    Payload->LastTblActionStatus = LastTbl->LastActionStatus;
    
+   Payload->TestActive  = JMsgApp.JMsgLibMgr.TestActive;
+   Payload->TestTopicId = JMsgApp.JMsgLibMgr.TestId;
+   Payload->TestExeCnt  = JMsgApp.JMsgLibMgr.TestExeCnt;
+   
    CFE_SB_TimeStampMsg(CFE_MSG_PTR(JMsgApp.StatusTlm.TelemetryHeader));
    CFE_SB_TransmitMsg(CFE_MSG_PTR(JMsgApp.StatusTlm.TelemetryHeader), true);
 

@@ -20,7 +20,7 @@
 **      designs. The app provides the command and telemetry ground
 **      interface to the library. A major difference is that JMSG_LIB 
 **      contains a table that configures the topics being managed.
-**   2. TODO: Describe coupling and dependencies.
+**   2. TODO: Describe the JMSG Lib-App coupling and dependencies.
 **
 */
 

@@ -92,6 +92,8 @@
           <Entry name="LastTblActionStatus" type="APP_C_FW/TblActionStatus" />
           <Entry name="TopicTblLoaded"      type="APP_C_FW/BooleanUint8" />
           <Entry name="TestActive"          type="APP_C_FW/BooleanUint8" />
+          <Entry name="TestTopicId"         type="BASE_TYPES/uint16" />
+          <Entry name="TestExeCnt"          type="BASE_TYPES/uint32" />
         </EntryList>
       </ContainerDataType>
 
