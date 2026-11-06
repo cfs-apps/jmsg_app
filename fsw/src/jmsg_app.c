@@ -179,7 +179,7 @@ static int32 InitApp(void)
       JMSG_LIB_MGR_Constructor(LIBMGR_OBJ, INITBL_OBJ);
                              
       JMsgApp.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_CMD_TOPICID));
-      JMsgApp.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_EXECUTE_TLM_TOPICID));
+      JMsgApp.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_EXECUTE_TOPICID));
          
       /*
       ** Initialize app level interfaces
@@ -190,18 +190,18 @@ static int32 InitApp(void)
       CFE_SB_Subscribe(JMsgApp.ExecuteMid, JMsgApp.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_NOOP_CC,  NULL, JMSG_APP_NoOpCmd,     0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_RESET_CC, NULL, JMSG_APP_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_NOOP_CC,  NULL, JMSG_APP_NoOpCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_RESET_CC, NULL, JMSG_APP_ResetAppCmd, 0);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, sizeof(JMSG_APP_LoadTbl_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, sizeof(JMSG_APP_DumpTbl_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, sizeof(JMSG_APP_LoadTbl_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, sizeof(JMSG_APP_DumpTbl_CmdPayload_t));
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_CONFIG_TOPIC_PLUGIN_CC,      NULL, JMSG_LIB_MGR_ConfigTopicPluginCmd,            sizeof(JMSG_APP_ConfigTopicPlugin_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_ALL_TOPIC_SUBSCRIBE_REQ_CC, NULL, JMSG_LIB_MGR_SendAllTopicSubscribeReqCmd, 0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_SUBSCRIBE_REQ_CC, NULL, JMSG_LIB_MGR_SendTopicSubscribeReqCmd,        sizeof( JMSG_APP_SendTopicSubscribeReq_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_SEND_TOPIC_TBL_TLM_CC,       NULL, JMSG_TOPIC_TBL_SendTlmCmd,                    0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_START_TOPIC_TEST_CC,         NULL, JMSG_LIB_MGR_StartTopicTestCmd,               sizeof(JMSG_APP_StartTopicTest_CmdPayload_t));
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, JMSG_APP_STOP_TOPIC_TEST_CC,          NULL, JMSG_LIB_MGR_StopTopicTestCmd,                0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_CONFIG_TOPIC_PLUGIN_CC,      NULL, JMSG_LIB_MGR_ConfigTopicPluginCmd,            sizeof(JMSG_APP_ConfigTopicPlugin_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_SEND_ALL_TOPIC_SUBSCRIBE_REQ_CC, NULL, JMSG_LIB_MGR_SendAllTopicSubscribeReqCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_SEND_TOPIC_SUBSCRIBE_REQ_CC, NULL, JMSG_LIB_MGR_SendTopicSubscribeReqCmd,        sizeof( JMSG_APP_SendTopicSubscribeReq_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_SEND_TOPIC_TBL_TLM_CC,       NULL, JMSG_TOPIC_TBL_SendTlmCmd,                    0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_START_TOPIC_TEST_CC,         NULL, JMSG_LIB_MGR_StartTopicTestCmd,               sizeof(JMSG_APP_StartTopicTest_CmdPayload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, EDS_CONTAINER_JMSG_APP_STOP_TOPIC_TEST_CC,          NULL, JMSG_LIB_MGR_StopTopicTestCmd,                0);
 
       CFE_MSG_Init(CFE_MSG_PTR(JMsgApp.StatusTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_JMSG_APP_STATUS_TLM_TOPICID)), sizeof(JMSG_APP_StatusTlm_t));
 
