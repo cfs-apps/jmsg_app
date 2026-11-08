@@ -57,7 +57,7 @@ void JMSG_LIB_MGR_Constructor(JMSG_LIB_MGR_Class_t *JMsgLibMgrPtr, const INITBL_
    
    memset((void*)JMsgLibMgr, 0, sizeof(JMSG_LIB_MGR_Class_t));
 
-   JMsgLibMgr->TestId = JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF;
+   JMsgLibMgr->TestId = EdsParam_JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF;
    JMsgLibMgr->TopicSubscribeReqDelay = INITBL_GetIntConfig(IniTbl, CFG_TOPIC_SUBSCRIBE_REQ_DELAY);
    
    JMsgLibMgr->TopicSubscribeReqTlmMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(IniTbl, CFG_JMSG_LIB_TOPIC_SUBSCRIBE_REQ_TLM_TOPICID));
@@ -192,7 +192,7 @@ bool JMSG_LIB_MGR_SendTopicSubscribeReqCmd(void *ObjDataPtr, const CFE_MSG_Messa
 
    bool RetStatus = false;
 
-   if (SendTopicPlugin->Id >= JMSG_PLATFORM_TopicPlugin_Enum_t_MIN && SendTopicPlugin->Id <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX)
+   if (SendTopicPlugin->Id >= EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MIN && SendTopicPlugin->Id <= EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MAX)
    {
       SendTopicSubscribeReq(SendTopicPlugin->Id);
       RetStatus = true;
@@ -221,7 +221,7 @@ bool JMSG_LIB_MGR_StartTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *M
    bool RetStatus = false;
    const JMSG_APP_StartTopicTest_CmdPayload_t *StartTest = CMDMGR_PAYLOAD_PTR(MsgPtr, JMSG_APP_StartTopicTest_t);   
                                           
-   if (StartTest->Id >= JMSG_PLATFORM_TopicPlugin_Enum_t_MIN && StartTest->Id <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX)
+   if (StartTest->Id >= EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MIN && StartTest->Id <= EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MAX)
    {
       const JMSG_TOPIC_TBL_Topic_t *Topic = JMSG_TOPIC_TBL_GetTopic(StartTest->Id);
       if (Topic != NULL)
@@ -281,7 +281,7 @@ bool JMSG_LIB_MGR_StopTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *Ms
                         "Received a stop topic test command when no test is active");   
    }
 
-   JMsgLibMgr->TestId     = JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF;
+   JMsgLibMgr->TestId     = EdsParam_JMSG_PLATFORM_TOPIC_PLUGIN_UNDEF;
    JMsgLibMgr->TestExeCnt = 0;
    JMsgLibMgr->TestActive = false;
    
@@ -296,7 +296,7 @@ bool JMSG_LIB_MGR_StopTopicTestCmd(void *ObjDataPtr, const CFE_MSG_Message_t *Ms
 */
 static void SendAllTopicSubscribeReq(void)
 {
-   for (JMSG_PLATFORM_TopicPlugin_Enum_t i=JMSG_PLATFORM_TopicPlugin_Enum_t_MIN; i <= JMSG_PLATFORM_TopicPlugin_Enum_t_MAX; i++)
+   for (JMSG_PLATFORM_TopicPlugin_Enum_t i=EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MIN; i <= EdsDataType_EdsEnum_JMSG_PLATFORM_TopicPlugin_t_MAX; i++)
    {
       SendTopicSubscribeReq(i);
       
